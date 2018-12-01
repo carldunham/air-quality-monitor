@@ -1,3 +1,11 @@
+# app-specific stuff
+build/
+deps/
+
+fs/conf*.json
+
+core-*
+
 # Prerequisites
 *.d
 
@@ -15,10 +23,6 @@
 *.so
 *.dylib
 *.dll
-
-# Fortran module files
-*.mod
-*.smod
 
 # Compiled Static libraries
 *.lai

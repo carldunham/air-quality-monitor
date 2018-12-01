@@ -1,0 +1,18 @@
+{
+  "wifi": {
+    "ap": {
+      "enable": false,
+    },
+    "sta": {
+      "enable": true,
+      "ssid": "xxxxxxx",
+      "pass": "xxxxxxx"
+    },
+    "sta1": {
+      "enable": true,
+      "ssid": "yyyyyyy",
+      "pass": "yyyyyyy"
+    },
+    "sta_cfg_idx": 1
+  }
+}
