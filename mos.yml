@@ -41,6 +41,31 @@ config_schema:
   - ["app.display.buttons.c", "i", 14, {title: "Button C Pin"}]
   # - ["app.display.oled_addr", "i", 0x3C, {title: "OLED I2C Address"}]
 
+  # follow wifi model, can cast any into struct mgos_config_app_loc
+  - ["app.loc", "o", {title: "Location 1 of 3"}]
+  - ["app.loc.desc", "s", {title: "Description"}]
+  - ["app.loc.shortdesc", "s", {title: "Short Description"}]
+  - ["app.loc.ssid", "s", {title: "Wifi SSID"}]
+  - ["app.loc.lat", "d", {title: "Latitude"}]
+  - ["app.loc.lon", "d", {title: "Longitute"}]
+  - ["app.loc.radius", "i", 25, {title: "Area radius (in miles)"}]
+
+  - ["app.loc1", "o", {title: "Location 2 of 3"}]
+  - ["app.loc1.desc", "s", {title: "Description"}]
+  - ["app.loc1.shortdesc", "s", {title: "Short Description"}]
+  - ["app.loc1.ssid", "s", {title: "Wifi SSID"}]
+  - ["app.loc1.lat", "d", {title: "Latitude"}]
+  - ["app.loc1.lon", "d", {title: "Longitute"}]
+  - ["app.loc1.radius", "i", 25, {title: "Area radius (in miles)"}]
+
+  - ["app.loc2", "o", {title: "Location 3 of 3"}]
+  - ["app.loc2.desc", "s", {title: "Description"}]
+  - ["app.loc2.shortdesc", "s", {title: "Short Description"}]
+  - ["app.loc2.ssid", "s", {title: "Wifi SSID"}]
+  - ["app.loc2.lat", "d", {title: "Latitude"}]
+  - ["app.loc2.lon", "d", {title: "Longitute"}]
+  - ["app.loc2.radius", "i", 25, {title: "Area radius (in miles)"}]
+
 conds:
   - when: mos.platform == "esp32"
     apply:

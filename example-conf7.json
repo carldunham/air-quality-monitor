@@ -14,5 +14,21 @@
       "pass": "yyyyyyy"
     },
     "sta_cfg_idx": 1
+  },
+  "app": {
+    "loc": {
+      "desc": "Belmont, CA",
+      "shortdesc": "CA",
+      "ssid": "******",
+      "lat": 36.1257,
+      "lon": -111.8767
+    },
+    "loc1": {
+      "desc": "Boston, MA",
+      "shortdesc": "MA",
+      "ssid": "******",
+      "lat": 42.3845,
+      "lon": -71.1817
+    }
   }
 }

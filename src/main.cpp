@@ -9,14 +9,17 @@
 #include "mgos_uart.h"
 #include "mgos_gpio.h"
 #include "mgos_system.h"
+#include "mgos_event.h"
 
 #include "PagedDisplay.h"
 #include "pms5003.h"
 #include "pages.h"
+#include "location.h"
 
 #define UART_NO 2
 
 static void handle_button(int pin, void *arg);
+static void handle_location_change(int ev, void *ev_data, void *userdata);
 static void uart_dispatcher(int uart_no, void *arg);
 
 PagedDisplay *display = nullptr;
@@ -27,6 +30,9 @@ enum mgos_app_init_result mgos_app_init(void) {
   pages_init(display);
 
   display->displayPage(1, 0);
+
+  location_init();
+  mgos_event_add_handler(LOCATION_CHANGE_EVENT, handle_location_change, nullptr);
 
   mgos_gpio_set_button_handler(mgos_sys_config_get_app_display_buttons_a(), MGOS_GPIO_PULL_UP, MGOS_GPIO_INT_EDGE_NEG, 50, handle_button, nullptr);
   mgos_gpio_set_button_handler(mgos_sys_config_get_app_display_buttons_b(), MGOS_GPIO_PULL_UP, MGOS_GPIO_INT_EDGE_NEG, 50, handle_button, nullptr);
@@ -70,6 +76,17 @@ static void handle_button(int pin, void *arg) {
     }
   }
   (void) arg;
+}
+
+static void handle_location_change(int ev, void *ev_data, void *userdata) {
+  const char *loc = "---";
+
+  if (ev_data != nullptr) {
+    struct mgos_config_app_loc *locinfo = (struct mgos_config_app_loc *)ev_data;
+    loc = locinfo->desc;
+    LOG(LL_INFO, ("Location is now '%s'", loc));
+  }
+  pages_update_location(display, loc);
 }
 
 static struct pms5003_data pms_data;
