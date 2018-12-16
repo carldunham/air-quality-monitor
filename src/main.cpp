@@ -1,52 +1,37 @@
 
 #include <Arduino.h>
-#include <Adafruit_SSD1306.h>
 
 #include "common/cs_dbg.h"
 #include "mgos_app.h"
+#include "mgos_config.h"
+
 #include "mgos_timers.h"
 #include "mgos_uart.h"
+#include "mgos_gpio.h"
+#include "mgos_system.h"
 
+#include "PagedDisplay.h"
 #include "pms5003.h"
+#include "pages.h"
 
 #define UART_NO 2
 
-#define SCREEN_HEIGHT 32
-#define SCREEN_WIDTH 128
-
-// We have 32 pixels in height to deal with
-#define LABEL_TEXT_SIZE 1
-#define LABEL_LINE_HEIGHT 8
-#define DATA_TEXT_SIZE 3
-#define DATA_LINE_HEIGHT 24
-
-// position the elements on the screen
-#define STATUS_BAR_COUNT 4
-#define STATUS_BAR_WIDTH 2
-#define STATUS_BAR_GUTTER 1
-#define STATUS_BAR_TOTAL_WIDTH ((STATUS_BAR_COUNT * STATUS_BAR_WIDTH) + (STATUS_BAR_GUTTER * (STATUS_BAR_COUNT-1)))
-#define STATUS_X (SCREEN_WIDTH-STATUS_BAR_TOTAL_WIDTH)
-#define STATUS_Y 0
-
-#define LABEL_X 0
-#define LABEL_Y ((DATA_LINE_HEIGHT - LABEL_LINE_HEIGHT) / 2)
-
-#define DATA_X (SCREEN_WIDTH/3)
-#define DATA_Y 0
-
-Adafruit_SSD1306 *display = nullptr;
-
+static void handle_button(int pin, void *arg);
 static void uart_dispatcher(int uart_no, void *arg);
-static void print_data(const char *label, int data);
+
+PagedDisplay *display = nullptr;
 
 enum mgos_app_init_result mgos_app_init(void) {
-  display = new Adafruit_SSD1306(-1 /* RST GPIO */, Adafruit_SSD1306::RES_128_32);
+  display = new PagedDisplay(3, 2);
 
-  if (display != nullptr) {
-    LOG(LL_INFO, ("Adafruit_SSD1306 created"));
-    display->begin(SSD1306_SWITCHCAPVCC, 0x3C, false);
-    // display->display();
-  }
+  pages_init(display);
+
+  display->displayPage(1, 0);
+
+  mgos_gpio_set_button_handler(mgos_sys_config_get_app_display_buttons_a(), MGOS_GPIO_PULL_UP, MGOS_GPIO_INT_EDGE_NEG, 50, handle_button, nullptr);
+  mgos_gpio_set_button_handler(mgos_sys_config_get_app_display_buttons_b(), MGOS_GPIO_PULL_UP, MGOS_GPIO_INT_EDGE_NEG, 50, handle_button, nullptr);
+  mgos_gpio_set_button_handler(mgos_sys_config_get_app_display_buttons_c(), MGOS_GPIO_PULL_UP, MGOS_GPIO_INT_EDGE_NEG, 50, handle_button, nullptr);
+
   struct mgos_uart_config ucfg;
   mgos_uart_config_set_defaults(UART_NO, &ucfg);
   ucfg.baud_rate = 9600;
@@ -57,7 +42,7 @@ enum mgos_app_init_result mgos_app_init(void) {
     return MGOS_APP_INIT_ERROR;
   }
   // TODO: wait 30 seconds for the fan to spin up before reading?
-  mgos_uart_set_dispatcher(UART_NO, uart_dispatcher, NULL /* arg */);
+  mgos_uart_set_dispatcher(UART_NO, uart_dispatcher, nullptr /* arg */);
   mgos_uart_set_rx_enabled(UART_NO, true);
 
   LOG(LL_INFO, ("UART%d configured", UART_NO));
@@ -65,8 +50,29 @@ enum mgos_app_init_result mgos_app_init(void) {
   return MGOS_APP_INIT_SUCCESS;
 }
 
+static void handle_button(int pin, void *arg) {
+  LOG(LL_DEBUG, ("pin=%d", pin));
+
+  if (display != nullptr) {
+
+    if (pin == mgos_sys_config_get_app_display_buttons_a()) {
+      display->scrollUp(0, false);
+    }
+    else if (pin == mgos_sys_config_get_app_display_buttons_b()) {
+      display->scrollRight(0, true);
+    }
+    else if (pin == mgos_sys_config_get_app_display_buttons_c()) {
+      display->scrollDown(0, false);
+    }
+    else {
+      LOG(LL_WARN, ("unexpected pin: %d", pin));
+      return;
+    }
+  }
+  (void) arg;
+}
+
 static struct pms5003_data pms_data;
-static int which = 1;
 
 static void uart_dispatcher(int uart_no, void *arg) {
   if (read_pms_data(uart_no, &pms_data)) {
@@ -85,66 +91,7 @@ static void uart_dispatcher(int uart_no, void *arg) {
     LOG(LL_DEBUG, ("Particles > 10.0um / 0.1L air: %d", pms_data.particles_100um));
     LOG(LL_DEBUG, ("---------------------------------------"));
 
-    if (display != nullptr) {
-
-      switch (which) {
-        case 0:
-          print_data("PM1.0", pms_data.pm10_env);
-          break;
-        case 1:
-          print_data("PM2.5", pms_data.pm25_env);
-          break;
-        case 2:
-          print_data("PM10", pms_data.pm100_env);
-          break;
-        default:
-          LOG(LL_WARN, ("Unknown selector for data value: %d", which));
-          print_data("UNK", -1);
-          break;
-      }
-      display->display();
-    }
+    pages_update_measured_data(display, pms_data.pm10_env, pms_data.pm25_env, pms_data.pm100_env);
   }
   (void) arg;
-}
-
-static void print_data(const char *label, int data) {
-  LOG(LL_DEBUG, ("Displaying %s: %d", label, data));
-
-  display->clearDisplay();
-  display->setTextColor(WHITE);
-  display->setTextWrap(false);
-
-  display->setTextSize(LABEL_TEXT_SIZE);
-  display->setCursor(LABEL_X, LABEL_Y);
-
-  display->print(label);
-
-  display->setTextSize(DATA_TEXT_SIZE);
-  display->setCursor(DATA_X, DATA_Y);
-
-  if (data < 0) {
-    display->print("----");
-  }
-  else if (data > 999) {
-    display->print(">999");
-  }
-  else {
-    display->printf(" %d", data);
-  }
-
-  // Wifi strength meter
-  display->fillRect(STATUS_X,                                        STATUS_Y+3, STATUS_BAR_WIDTH, 1, WHITE);
-  display->fillRect(STATUS_X+(STATUS_BAR_WIDTH+STATUS_BAR_GUTTER)  , STATUS_Y+2, STATUS_BAR_WIDTH, 2, WHITE);
-  display->fillRect(STATUS_X+(STATUS_BAR_WIDTH+STATUS_BAR_GUTTER)*2, STATUS_Y+1, STATUS_BAR_WIDTH, 3, WHITE);
-  display->fillRect(STATUS_X+(STATUS_BAR_WIDTH+STATUS_BAR_GUTTER)*3, STATUS_Y+0, STATUS_BAR_WIDTH, 4, WHITE);
-
-  // test pattern
-  // for (int16_t y=0, w=1; y < 32; y += w, w <<= 1) {
-  //   LOG(LL_INFO, ("y=%d, w=%d", y, w));
-  //
-  //   for (int16_t x=0; x < 128; x += w<<1) {
-  //     display->fillRect(x, y, w, w, WHITE);
-  //   }
-  // }
 }
