@@ -120,10 +120,26 @@ void pages_update_wifi_strength(PagedDisplay *display, int level) {
   // Wifi strength meter
   overlay->fillScreen(BLACK);
 
-  overlay->fillRect(STATUS_X,                                        STATUS_Y+3, STATUS_BAR_WIDTH, 1, WHITE);
-  overlay->fillRect(STATUS_X+(STATUS_BAR_WIDTH+STATUS_BAR_GUTTER)  , STATUS_Y+2, STATUS_BAR_WIDTH, 2, WHITE);
-  overlay->fillRect(STATUS_X+(STATUS_BAR_WIDTH+STATUS_BAR_GUTTER)*2, STATUS_Y+1, STATUS_BAR_WIDTH, 3, WHITE);
-  overlay->fillRect(STATUS_X+(STATUS_BAR_WIDTH+STATUS_BAR_GUTTER)*3, STATUS_Y+0, STATUS_BAR_WIDTH, 4, WHITE);
+  if (level <= 0) {
+    LOG(LL_INFO, ("no wifi signal or connection"));
+    return;
+  }
+  LOG(LL_INFO, ("WIFI level=%d", level));
+
+  switch (level) {
+    default:
+      overlay->fillRect(STATUS_X+(STATUS_BAR_WIDTH+STATUS_BAR_GUTTER)*3, STATUS_Y+0, STATUS_BAR_WIDTH, 4, WHITE);
+      // fallthrough
+    case 3:
+      overlay->fillRect(STATUS_X+(STATUS_BAR_WIDTH+STATUS_BAR_GUTTER)*2, STATUS_Y+1, STATUS_BAR_WIDTH, 3, WHITE);
+      // fallthrough
+    case 2:
+      overlay->fillRect(STATUS_X+(STATUS_BAR_WIDTH+STATUS_BAR_GUTTER)  , STATUS_Y+2, STATUS_BAR_WIDTH, 2, WHITE);
+      // fallthrough
+    case 1:
+      overlay->fillRect(STATUS_X,                                        STATUS_Y+3, STATUS_BAR_WIDTH, 1, WHITE);
+      // fallthrough
+  }
 
   display->display();
 }
