@@ -17,6 +17,7 @@
 #include "location.h"
 #include "aqi_poller.h"
 #include "wifi_monitor.h"
+#include "publish.h"
 
 #define UART_NO 2
 
@@ -38,6 +39,8 @@ enum mgos_app_init_result mgos_app_init(void) {
 
   aqi_poller_init(display);
   wifi_monitor_init(display);
+
+  publish_init();
 
   mgos_gpio_set_button_handler(mgos_sys_config_get_app_display_buttons_a(), MGOS_GPIO_PULL_UP, MGOS_GPIO_INT_EDGE_NEG, 50, handle_button, nullptr);
   mgos_gpio_set_button_handler(mgos_sys_config_get_app_display_buttons_b(), MGOS_GPIO_PULL_UP, MGOS_GPIO_INT_EDGE_NEG, 50, handle_button, nullptr);
@@ -114,6 +117,8 @@ static void uart_dispatcher(int uart_no, void *arg) {
     LOG(LL_DEBUG, ("---------------------------------------"));
 
     pages_update_measured_data(display, pms_data.pm10_env, pms_data.pm25_env, pms_data.pm100_env);
+
+    publish_data(&pms_data);
   }
   (void) arg;
 }

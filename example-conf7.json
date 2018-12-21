@@ -15,6 +15,11 @@
     },
     "sta_cfg_idx": 1
   },
+  "mqtt": {
+    "enable": true,
+    "server": "mqtt.pndsn.com",
+    "client_id": "************"
+  },
   "app": {
     "loc": {
       "desc": "Belmont, CA",
