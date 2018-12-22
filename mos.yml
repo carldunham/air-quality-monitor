@@ -66,6 +66,8 @@ config_schema:
   - ["app.loc2.lon", "d", {title: "Longitute"}]
   - ["app.loc2.radius", "i", 25, {title: "Area radius (in miles)"}]
 
+  - ["app.airnow_api_key", "s", {title: "AirNow API key"}]
+
 conds:
   - when: mos.platform == "esp32"
     apply:
