@@ -1,0 +1,95 @@
+author: Carl Dunham <cdunham@gmail.com>
+description: Measure local air quality, display values from sensor and public sources
+version: 1.0
+platform: esp32
+platforms: [ esp32, esp8266 ]
+
+libs_version: ${mos.version}
+modules_version: ${mos.version}
+mongoose_os_version: ${mos.version}
+
+filesystem:
+  - fs
+
+sources:
+  - src
+
+includes:
+  - include
+
+libs:
+    # common mgos libs
+  - origin: https://github.com/mongoose-os-libs/boards
+  - origin: https://github.com/mongoose-os-libs/ca-bundle
+  - origin: https://github.com/mongoose-os-libs/i2c
+  - origin: https://github.com/mongoose-os-libs/rpc-service-config
+  - origin: https://github.com/mongoose-os-libs/rpc-service-fs
+  - origin: https://github.com/mongoose-os-libs/rpc-uart
+  - origin: https://github.com/mongoose-os-libs/arduino-adafruit-ssd1306
+  - origin: https://github.com/mongoose-os-libs/mqtt
+
+config_schema:
+  # - ["debug.level", 3]
+  - ["i2c.enable", true]
+  - ["spi.enable", false]
+    # app-specific settings
+  - ["app", "o", {title: "Air Quality Monitor - Application Settings"}]
+
+  - ["app.display", "o", {title: "FeatherWing OLED Display Configuration"}]
+  - ["app.display.buttons", "o", {title: "Button Pins"}]
+  - ["app.display.buttons.a", "i", 15, {title: "Button A Pin"}]
+  - ["app.display.buttons.b", "i", 32, {title: "Button B Pin"}]
+  - ["app.display.buttons.c", "i", 14, {title: "Button C Pin"}]
+  # - ["app.display.oled_addr", "i", 0x3C, {title: "OLED I2C Address"}]
+
+  # follow wifi model, can cast any into struct mgos_config_app_loc
+  - ["app.loc", "o", {title: "Location 1 of 3"}]
+  - ["app.loc.desc", "s", {title: "Description"}]
+  - ["app.loc.shortdesc", "s", {title: "Short Description"}]
+  - ["app.loc.ssid", "s", {title: "Wifi SSID"}]
+  - ["app.loc.lat", "d", {title: "Latitude"}]
+  - ["app.loc.lon", "d", {title: "Longitute"}]
+  - ["app.loc.radius", "i", 25, {title: "Area radius (in miles)"}]
+
+  - ["app.loc1", "o", {title: "Location 2 of 3"}]
+  - ["app.loc1.desc", "s", {title: "Description"}]
+  - ["app.loc1.shortdesc", "s", {title: "Short Description"}]
+  - ["app.loc1.ssid", "s", {title: "Wifi SSID"}]
+  - ["app.loc1.lat", "d", {title: "Latitude"}]
+  - ["app.loc1.lon", "d", {title: "Longitute"}]
+  - ["app.loc1.radius", "i", 25, {title: "Area radius (in miles)"}]
+
+  - ["app.loc2", "o", {title: "Location 3 of 3"}]
+  - ["app.loc2.desc", "s", {title: "Description"}]
+  - ["app.loc2.shortdesc", "s", {title: "Short Description"}]
+  - ["app.loc2.ssid", "s", {title: "Wifi SSID"}]
+  - ["app.loc2.lat", "d", {title: "Latitude"}]
+  - ["app.loc2.lon", "d", {title: "Longitute"}]
+  - ["app.loc2.radius", "i", 25, {title: "Area radius (in miles)"}]
+
+  - ["app.airnow_api_key", "s", {title: "AirNow API key"}]
+
+  - ["app.mqtt", "o", {title: "app-specific MQTT settings"}]
+  - ["app.mqtt.topic", "s", {title: "MQTT topic to publish data to"}]
+  - ["app.mqtt.qos", "i", {title: "MQTT QOS value"}]
+
+conds:
+  - when: mos.platform == "esp32"
+    apply:
+      build_vars:
+        MGOS_PLATFORM_ESP32: 1
+      config_schema:
+        - ["i2c.scl_gpio", 22]
+        - ["i2c.sda_gpio", 23]
+        - ["i2c.freq", 800000]
+        # - ["i2c.unit_no", 0]
+        - ["app.display.buttons.a", 15]
+        - ["app.display.buttons.b", 32]
+        - ["app.display.buttons.c", 14]
+
+tags:
+  - c
+  - arduino
+  - hw
+
+manifest_version: 2017-05-18

@@ -1,0 +1,40 @@
+{
+  "wifi": {
+    "ap": {
+      "enable": false,
+    },
+    "sta": {
+      "enable": true,
+      "ssid": "xxxxxxx",
+      "pass": "xxxxxxx"
+    },
+    "sta1": {
+      "enable": true,
+      "ssid": "yyyyyyy",
+      "pass": "yyyyyyy"
+    },
+    "sta_cfg_idx": 1
+  },
+  "mqtt": {
+    "enable": true,
+    "server": "mqtt.pndsn.com",
+    "client_id": "************"
+  },
+  "app": {
+    "loc": {
+      "desc": "Belmont, CA",
+      "shortdesc": "CA",
+      "ssid": "******",
+      "lat": 36.1257,
+      "lon": -111.8767
+    },
+    "loc1": {
+      "desc": "Boston, MA",
+      "shortdesc": "MA",
+      "ssid": "******",
+      "lat": 42.3845,
+      "lon": -71.1817
+    },
+    "airnow_api_key": "***************"
+  }
+}
